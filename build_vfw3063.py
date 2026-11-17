@@ -104,12 +104,18 @@ tbox = tbox.union(
 
 motor = mflange.union(mbody).union(cowl).union(shaft).union(tbox)
 
-# ---------------- assembly + export ----------------
-assy = cq.Assembly(name="VF_W_30_63_1200_P56_BN56A4")
-assy.add(reducer, name="gearbox_body", color=cq.Color(0.62, 0.62, 0.62))
-assy.add(motor, name="motor_BN56A4", color=cq.Color(0.16, 0.31, 0.55))
+# ---------------- export ----------------
+# flat STEP (AP214, no assembly nodes) : best SolidWorks compatibility
+from OCP.Interface import Interface_Static
+from OCP.STEPControl import STEPControl_Writer, STEPControl_StepModelType
 
+compound = cq.Compound.makeCompound([reducer.val(), motor.val()])
 out = "/workspace/VF_W_30_63_1200_P56_BN56A4.step"
-assy.save(out)
+
+Interface_Static.SetCVal_s("write.step.schema", "AP214")
+Interface_Static.SetIVal_s("write.step.assembly", 0)
+writer = STEPControl_Writer()
+writer.Transfer(compound.wrapped, STEPControl_StepModelType.STEPControl_AsIs)
+writer.Write(out)
 
 print("saved", out)
